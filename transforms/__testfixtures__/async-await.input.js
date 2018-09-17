@@ -8,7 +8,8 @@ function chained() {
 }
 
 const fold = () => {
-  return this.unfoldedView.fadeOut(foldingDuration / 2)
+  return this.unfoldedView
+    .fadeOut(foldingDuration / 2)
     .then(() => this.foldedView.fadeIn(foldingDuration / 2))
     .then(() => this.setState({ isFolded: true }))
     .catch(e => console.log(e));
@@ -74,4 +75,8 @@ function countUserVotes(userIds) {
       return user.getVoteCount().then(count => acc + count);
     });
   });
+}
+
+function catchAwait() {
+  return foo.bar().catch(e => console.log(e));
 }

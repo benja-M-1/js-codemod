@@ -28,8 +28,11 @@ const takeDeposit = async (app, booking, depositAmountCorrespondencyTable) => {
   }`;
 
   try {
-    const result = await stripeService
-      .createDeposit(booking, depositAmount, description);
+    const result = await stripeService.createDeposit(
+      booking,
+      depositAmount,
+      description
+    );
     await booking.updateAttributes({
       depositDate: momentTz.unix(result.created).utc(),
       depositChargeId: result.id
@@ -75,4 +78,12 @@ async function countUserVotes(userIds) {
     const count = await user.getVoteCount();
     return acc + count;
   });
+}
+
+async function catchAwait() {
+  try {
+    return await foo.bar();
+  } catch (e) {
+    console.log(e);
+  }
 }

@@ -23,7 +23,7 @@ export default function transformer(file, api) {
     if (last.type !== 'ReturnStatement') {
       return false;
     }
-    return isPromiseCall(last.argument);
+    return isPromiseCall(last.argument) || isPromiseCatchCall(last.argument);
   };
 
   const arrowReturnsPromise = p => {
@@ -58,7 +58,7 @@ export default function transformer(file, api) {
 
   const genAwaition = (callExp, callBack) => {
     let awaition;
-    if (callBack.params.length > 0) {
+    if (callBack && callBack.params.length > 0) {
       awaition = genAwaitionDeclarator(callBack.params, callExp.callee.object);
     } else {
       awaition = j.expressionStatement(
@@ -123,18 +123,27 @@ export default function transformer(file, api) {
   const genCatchClause = (callExp, callBack) => {
     let catchClause;
 
+    console.log(callBack);
     if (callBack.body.type == 'BlockStatement') {
       catchClause = j.catchClause(callBack.params[0], null, callBack.body);
     } else {
       catchClause = j.catchClause(
-        callBack.body.arguments[0],
+        callBack.params[0],
         null,
         j.blockStatement([j.expressionStatement(callBack.body)])
       );
     }
 
+    let blockStatements = [];
+
+    if (isPromiseCall(callExp.callee.object)) {
+      blockStatements = [...genAwait(j.returnStatement(callExp.callee.object))];
+    } else {
+      blockStatements = [genAwaition(callExp)];
+    }
+
     const tryStatement = j.tryStatement(
-      j.blockStatement([...genAwait(j.returnStatement(callExp.callee.object))]),
+      j.blockStatement(blockStatements),
       catchClause
     );
 
